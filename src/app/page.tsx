@@ -1,95 +1,106 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
+
+import { useState, useRef, useEffect, FormEvent } from 'react';
+import styles from './page.module.css';
+
+type Message = {
+  text: string;
+  sender: 'user' | 'bot';
+};
 
 export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  
+  const messageDisplayRef = useRef<HTMLDivElement>(null);
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    if (messageDisplayRef.current) {
+      messageDisplayRef.current.scrollTop = messageDisplayRef.current.scrollHeight;
+    }
+  }, [messages, isLoading]); // Also trigger on isLoading change
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    const userMessage = inputValue.trim();
+
+    if (userMessage) {
+      const newUserMessage: Message = { text: userMessage, sender: 'user' };
+      setMessages(prevMessages => [...prevMessages, newUserMessage]);
+      setInputValue('');
+      setIsLoading(true);
+
+      try {
+        const response = await fetch('http://localhost:8000/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ message: userMessage }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        // Define a type for the expected API response for type safety
+        type ApiResponse = {
+          meal_name: string;
+          description: string;
+          ingredients_used: string[];
+        };
+
+        const data: ApiResponse = await response.json();
+        
+        const botResponseText = `${data.meal_name}\n\n${data.description}`;
+
+        const newBotMessage: Message = { text: botResponseText, sender: 'bot' };
+        setMessages(prevMessages => [...prevMessages, newBotMessage]);
+
+      } catch (error) {
+        console.error('Failed to fetch response:', error);
+        const errorMessage: Message = { 
+          text: 'Sorry, something went wrong. Please try again.', 
+          sender: 'bot' 
+        };
+        setMessages(prevMessages => [...prevMessages, errorMessage]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  return (
+    <main className={styles.main}>
+      <div className={styles.chatContainer}>
+        <div className={styles.messageDisplay} ref={messageDisplayRef}>
+          {messages.map((msg, index) => (
+            <div key={index} className={`${styles.message} ${msg.sender === 'user' ? styles.userMessage : styles.botMessage}`}>
+              {msg.text}
+            </div>
+          ))}
+          {isLoading && (
+            <div className={`${styles.message} ${styles.botMessage} ${styles.typingIndicator}`}>
+              <span></span><span></span><span></span>
+            </div>
+          )}
         </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <form onSubmit={handleSubmit} className={styles.inputForm}>
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="Type your ingredients..."
+            className={styles.userInput}
+            autoComplete="off"
+            disabled={isLoading}
           />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <button type="submit" className={styles.sendButton} disabled={isLoading}>
+            Send
+          </button>
+        </form>
+      </div>
+    </main>
   );
 }
