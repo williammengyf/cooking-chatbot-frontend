@@ -12,6 +12,8 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  // NEW: Generate a unique session ID for the conversation
+  const [sessionId] = useState(() => crypto.randomUUID());
   
   const messageDisplayRef = useRef<HTMLDivElement>(null);
 
@@ -19,7 +21,7 @@ export default function Home() {
     if (messageDisplayRef.current) {
       messageDisplayRef.current.scrollTop = messageDisplayRef.current.scrollHeight;
     }
-  }, [messages, isLoading]); // Also trigger on isLoading change
+  }, [messages, isLoading]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -33,29 +35,29 @@ export default function Home() {
 
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        
         const response = await fetch(`${apiUrl}/chat`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ message: userMessage }),
+          // MODIFIED: Send session_id along with the message
+          body: JSON.stringify({
+            message: userMessage,
+            session_id: sessionId
+          }),
         });
 
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
 
-        // Define a type for the expected API response for type safety
         type ApiResponse = {
-          meal_name: string;
-          description: string;
-          ingredients_used: string[];
+          response: string;
         };
 
         const data: ApiResponse = await response.json();
-        
-        const botResponseText = `${data.meal_name}\n\n${data.description}`;
-
+        const botResponseText = data.response;
         const newBotMessage: Message = { text: botResponseText, sender: 'bot' };
         setMessages(prevMessages => [...prevMessages, newBotMessage]);
 
