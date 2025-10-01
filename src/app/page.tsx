@@ -12,8 +12,7 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  // NEW: Generate a unique session ID for the conversation
-  const [sessionId] = useState(() => crypto.randomUUID());
+  const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
   
   const messageDisplayRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +40,6 @@ export default function Home() {
           headers: {
             'Content-Type': 'application/json',
           },
-          // MODIFIED: Send session_id along with the message
           body: JSON.stringify({
             message: userMessage,
             session_id: sessionId
@@ -74,9 +72,22 @@ export default function Home() {
     }
   };
 
+  const handleNewConversation = () => {
+    setMessages([]);
+    setSessionId(crypto.randomUUID());
+  };
+
   return (
     <main className={styles.main}>
       <div className={styles.chatContainer}>
+        {/* NEW: Chat Header */}
+        <div className={styles.chatHeader}>
+          <h1 className={styles.headerTitle}>Cooking Assistant</h1>
+          <button onClick={handleNewConversation} className={styles.newConversationButton}>
+            New Conversation
+          </button>
+        </div>
+
         <div className={styles.messageDisplay} ref={messageDisplayRef}>
           {messages.map((msg, index) => (
             <div key={index} className={`${styles.message} ${msg.sender === 'user' ? styles.userMessage : styles.botMessage}`}>
