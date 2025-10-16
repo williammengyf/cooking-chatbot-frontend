@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, FormEvent } from 'react';
+import ReactMarkdown from 'react-markdown'; // 1. Import the component
 import styles from './page.module.css';
 
 type Message = {
@@ -80,18 +81,19 @@ export default function Home() {
   return (
     <main className={styles.main}>
       <div className={styles.chatContainer}>
-        {/* NEW: Chat Header */}
         <div className={styles.chatHeader}>
-          <h1 className={styles.headerTitle}>Cooking Assistant</h1>
+          <h1 className={styles.headerTitle}>煮义煮义菜谱助手</h1>
           <button onClick={handleNewConversation} className={styles.newConversationButton}>
-            New Conversation
+            新的对话
           </button>
         </div>
 
         <div className={styles.messageDisplay} ref={messageDisplayRef}>
           {messages.map((msg, index) => (
             <div key={index} className={`${styles.message} ${msg.sender === 'user' ? styles.userMessage : styles.botMessage}`}>
-              {msg.text}
+              <ReactMarkdown>
+                {msg.text}
+              </ReactMarkdown>
             </div>
           ))}
           {isLoading && (
@@ -105,13 +107,13 @@ export default function Home() {
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type your ingredients..."
+            placeholder="请输入食材或口味偏好"
             className={styles.userInput}
             autoComplete="off"
             disabled={isLoading}
           />
           <button type="submit" className={styles.sendButton} disabled={isLoading}>
-            Send
+            发送
           </button>
         </form>
       </div>
