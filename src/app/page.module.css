@@ -3,13 +3,18 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%; 
   min-height: 100vh;
   background-color: #f0f2f5;
+  padding: 16px;
+  box-sizing: border-box;
 }
 
 .chatContainer {
-  width: 400px;
-  height: 600px;
+  width: 100%;
+  max-width: 700px;
+  height: 90vh;
+  max-height: 800px;
   border: 1px solid #ccc;
   border-radius: 8px;
   background-color: #fff;
@@ -44,25 +49,40 @@
 }
 
 .botMessage {
-  background-color: #e5e5ea;
+  background-color: #f7f7f7;
   color: black;
   align-self: flex-start;
-  border-bottom-left-radius: 4px;
+  border-bottom-left-radius: 12px;
+  border: 1px solid #e5e5ea;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  padding: 20px;
 }
 
 .inputForm {
   display: flex;
   padding: 10px;
-  border-top: 1px solid #ccc;
+  border-top: 1px solid #e5e5ea;
+  gap: 10px;
+}
+
+.inputWrapper {
+  position: relative;
+  flex-grow: 1;
 }
 
 .userInput {
-  flex-grow: 1;
+  width: 100%;
   border: 1px solid #ccc;
   border-radius: 18px;
   padding: 10px 15px;
   font-size: 16px;
-  margin-right: 10px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.userInput:focus {
+  outline: none;
+  border-color: #0073e6;
 }
 
 .sendButton {
@@ -110,4 +130,62 @@
   40% {
     transform: scale(1.0);
   }
+}
+
+.chatHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid #ccc;
+}
+
+.headerTitle {
+  font-weight: bold;
+  font-size: 18px;
+  color: #999;
+}
+
+.newConversationButton {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+.newConversationButton:hover {
+  background-color: #999;
+}
+
+.recipeTitle {
+  font-size: 24px;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+
+.recipeSection {
+  font-size: 18px;
+  font-weight: 600;
+  display: block;
+  margin-top: 20px;
+  margin-bottom: 12px;
+}
+
+.ingredientList {
+  padding-left: 20px;
+  margin-bottom: 20px;
+  list-style-type: disc;
+}
+
+.instructionList {
+  padding-left: 20px;
+  line-height: 1.6;
+}
+
+.ingredientList li, .instructionList li {
+  margin-bottom: 8px;
 }

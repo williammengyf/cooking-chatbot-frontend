@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, FormEvent } from 'react';
+import ReactMarkdown from 'react-markdown';
 import styles from './page.module.css';
 
 type Message = {
@@ -12,8 +13,7 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  // NEW: Generate a unique session ID for the conversation
-  const [sessionId] = useState(() => crypto.randomUUID());
+  const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
   
   const messageDisplayRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +41,6 @@ export default function Home() {
           headers: {
             'Content-Type': 'application/json',
           },
-          // MODIFIED: Send session_id along with the message
           body: JSON.stringify({
             message: userMessage,
             session_id: sessionId
@@ -74,13 +73,38 @@ export default function Home() {
     }
   };
 
+  const handleNewConversation = () => {
+    setMessages([]);
+    setSessionId(crypto.randomUUID());
+  };
+
   return (
     <main className={styles.main}>
       <div className={styles.chatContainer}>
+        <div className={styles.chatHeader}>
+          <h1 className={styles.headerTitle}>煮义煮义菜谱助手</h1>
+          <button onClick={handleNewConversation} className={styles.newConversationButton}>
+            新的对话
+          </button>
+        </div>
+
         <div className={styles.messageDisplay} ref={messageDisplayRef}>
           {messages.map((msg, index) => (
             <div key={index} className={`${styles.message} ${msg.sender === 'user' ? styles.userMessage : styles.botMessage}`}>
-              {msg.text}
+              <ReactMarkdown
+                components={{
+                  // Make the main title larger and more prominent
+                  h1: ({node, ...props}) => <h1 className={styles.recipeTitle} {...props} />,
+                  h2: ({node, ...props}) => <h2 className={styles.recipeTitle} {...props} />,
+                  // Style the "食材" and "做法" sections
+                  strong: ({node, ...props}) => <strong className={styles.recipeSection} {...props} />,
+                  // Improve list spacing
+                  ul: ({node, ...props}) => <ul className={styles.ingredientList} {...props} />,
+                  ol: ({node, ...props}) => <ol className={styles.instructionList} {...props} />,
+                }}
+              >
+                {msg.text}
+              </ReactMarkdown>
             </div>
           ))}
           {isLoading && (
@@ -89,20 +113,22 @@ export default function Home() {
             </div>
           )}
         </div>
-        <form onSubmit={handleSubmit} className={styles.inputForm}>
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type your ingredients..."
-            className={styles.userInput}
-            autoComplete="off"
-            disabled={isLoading}
-          />
-          <button type="submit" className={styles.sendButton} disabled={isLoading}>
-            Send
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className={styles.inputForm}>
+            <div className={styles.inputWrapper}>
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="请输入食材或口味偏好"
+                className={styles.userInput}
+                autoComplete="off"
+                disabled={isLoading}
+              />
+            </div>
+            <button type="submit" className={styles.sendButton} disabled={isLoading}>
+              发送
+            </button>
+          </form>
       </div>
     </main>
   );
