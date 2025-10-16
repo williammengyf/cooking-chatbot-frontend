@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, FormEvent } from 'react';
-import ReactMarkdown from 'react-markdown'; // 1. Import the component
+import ReactMarkdown from 'react-markdown';
 import styles from './page.module.css';
 
 type Message = {
@@ -91,7 +91,18 @@ export default function Home() {
         <div className={styles.messageDisplay} ref={messageDisplayRef}>
           {messages.map((msg, index) => (
             <div key={index} className={`${styles.message} ${msg.sender === 'user' ? styles.userMessage : styles.botMessage}`}>
-              <ReactMarkdown>
+              <ReactMarkdown
+                components={{
+                  // Make the main title larger and more prominent
+                  h1: ({node, ...props}) => <h1 className={styles.recipeTitle} {...props} />,
+                  h2: ({node, ...props}) => <h2 className={styles.recipeTitle} {...props} />,
+                  // Style the "食材" and "做法" sections
+                  strong: ({node, ...props}) => <strong className={styles.recipeSection} {...props} />,
+                  // Improve list spacing
+                  ul: ({node, ...props}) => <ul className={styles.ingredientList} {...props} />,
+                  ol: ({node, ...props}) => <ol className={styles.instructionList} {...props} />,
+                }}
+              >
                 {msg.text}
               </ReactMarkdown>
             </div>
@@ -102,20 +113,22 @@ export default function Home() {
             </div>
           )}
         </div>
-        <form onSubmit={handleSubmit} className={styles.inputForm}>
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="请输入食材或口味偏好"
-            className={styles.userInput}
-            autoComplete="off"
-            disabled={isLoading}
-          />
-          <button type="submit" className={styles.sendButton} disabled={isLoading}>
-            发送
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className={styles.inputForm}>
+            <div className={styles.inputWrapper}>
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="请输入食材或口味偏好"
+                className={styles.userInput}
+                autoComplete="off"
+                disabled={isLoading}
+              />
+            </div>
+            <button type="submit" className={styles.sendButton} disabled={isLoading}>
+              发送
+            </button>
+          </form>
       </div>
     </main>
   );
